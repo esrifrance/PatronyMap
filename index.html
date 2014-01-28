@@ -1,0 +1,596 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+  <link rel="shortcut icon" type="image/x-icon" href="http://www.arcgis.com/favicon.ico">
+  <title>PatronymoGéo</title>
+  <link rel="stylesheet" href="http://js.arcgis.com/3.8/js/dojo/dijit/themes/tundra/tundra.css">
+  <link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.8/js/esri/css/esri.css">
+  <link rel="stylesheet" href="./css/Fantoir.css">
+
+  <script>var dojoConfig = { parseOnLoad: true };</script>
+
+  <script src="./js/hogan-2.0.0.js"></script>
+  <script src="./js/jquery-1.9.1.min.js"></script>
+  <script src="./js/typeahead.js"></script>
+  <script src="./js/RechercheFantoir.js"></script>
+  <script src="//js.arcgis.com/3.8/"></script>
+
+
+  <script>
+    var map;
+    var dialog;
+    var webmap = {};
+    var featureLayer;
+    var featureCollection;
+
+    var Noms_H = new Array();
+    var CodesInsee_H = new Array();
+
+
+    var Noms_F = new Array();
+    var CodesInsee_F = new Array();
+
+    var simpleJsonH;
+    var simpleJsonF;
+    var simpleJsonS;
+
+    var rendF
+    var rendH
+    var rendS
+
+    var featureset_from_search;
+
+    var CodesInsee_Points = {};
+    var noms_communes = {};
+
+    var isMobile = false;
+
+
+    require(["dojo/sniff"], function(sniff){
+    if(sniff("ios") || sniff("android")){
+      isMobile=true;
+    };
+    });
+
+
+
+    webmap.item = {
+      "title":"World_Dark_Gray",
+      "snippet": "World_Dark_Gray",
+      "extent": [[-2,41],[5, 53]]
+    };
+
+    webmap.itemData = {
+      "baseMap": {
+        "baseMapLayers": [{
+          "opacity": 1,
+          "visibility": true,
+          "url": "http://tiles.arcgis.com/tiles/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Dark_Gray_Base_Beta/MapServer"
+        },{
+          "isReference": true,
+          "opacity": 1,
+          "visibility": true,
+          "url": "http://tiles.arcgis.com/tiles/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Dark_Gray_Reference_Beta/MapServer"
+        }],
+        "title": "World_Dark_Gray"
+      },
+      "version": "1.1"
+    };
+
+    require([
+      "esri/map",
+      "esri/request",
+      "esri/renderers/SimpleRenderer",
+      "esri/dijit/Geocoder",
+      "esri/layers/FeatureLayer",
+      "esri/symbols/SimpleMarkerSymbol", "esri/symbols/PictureMarkerSymbol",
+      "esri/geometry/Point", "esri/graphic",
+      "esri/arcgis/utils", "esri/lang","esri/dijit/HomeButton",
+      "dojo/dom-style", "dijit/TooltipDialog", "dijit/Dialog", "dijit/popup",
+      "dojo/parser","dojo/_base/Color", "dojo/on","dojo/domReady!"
+    ], function( Map, esriRequest, SimpleRenderer, Geocoder, FeatureLayer, SimpleMarkerSymbol,PictureMarkerSymbol, Point, Graphic, arcgisUtils, esriLang,
+      HomeButton, domStyle, TooltipDialog, Dialog, dijitPopup, parser, Color, on)  {
+
+      parser.parse();
+
+      var myWelcomeBanner = new Dialog({
+        "id": "WelcomeBanner",
+        "title": "",
+        "style": "opacity: 0.8; font-size: 9pt; color: black; width: 900px; height: 600px; overflow: auto; background-image:url('./images/banner.jpg'); vertical-alignment: center",
+        "class": "",
+        "content": "<div style='position:absolute; left: 360px; bottom: 20px'><button class='GreyButton' type='button' onClick='dijit.byId(\"WelcomeBanner\").hide()'>Accéder à l'application</button></div>",
+        "duration": 1000,
+        "draggable": false
+       });
+
+      myWelcomeBanner.attr('closable',true);
+
+      myWelcomeBanner.startup();
+      myWelcomeBanner.show();
+
+      var myAboutDialog = new Dialog({
+        "id": "AboutDialog",
+        "title": "A propos de cette application",
+        "style": "opacity: 0.8; font-size: 9pt; color: black; width: 900px; height: 600px; overflow: auto; vertical-alignment: center",
+        "class": "tundra",
+        "content": "<div><p align='justify' style>En France de nombreuses voies portent des noms de personnalités (scientifiques, artistes, responsables politiques, militaires,...). L'objectif de cette application est de présenter une cartographie des communes dont les voies portent des noms de personnalités. Vous pouvez rechercher un nom de personnalité puis afficher les communes contenant une voie correspondant à ce nom. La visualisation cartographique permet, par exemple, de constater des phénomènes géographiques intéressants liés à l'histoire ou à l'activité d'une personnalité. L'application propose également un accès rapide aux 100 noms de personnalités masculines et féminines que l'on retrouve le plus fréquement dans les noms de voie en France métropolitaine.<br/></br><b>Les données utilisées</b><br/></br>L'application repose sur les informations fournies par la base de données Fantoir 2013 diffusée en <a target='_new' href='http://wiki.data.gouv.fr/wiki/Licence_Ouverte_/_Open_Licence'>Licence Ouverte</a> et téléchargeable depuis <a target='_new' href='http://www.data.gouv.fr/fr/dataset/fichier-fantoir-des-voies-et-lieux-dits'>le site web data.gouv.fr</a> depuis novembre 2013. Cette base de données répertorie les 1,6 millions de noms de voie en France (Métropole + DOM-TOM). Par des traitements automatisés, seuls les noms de voies correspondant à des noms de personnalités ont été conservés, soit environ 289500 voies pour la Métropole.<br/></br><b>L'application</b><br/></br>L'application cartographique est basée sur <a href='http://developers.arcgis.com/javascript/' target='_new'>l'API ArcGIS for JavaScript</a> d'Esri et des services web hébergés sur la plateforme <a href='http://www.arcgis.com' target='_new'>ArcGIS Online</a>.<br/></br><b>Avertissements</b><br/></br>La base de données Fantoir est d'une qualité assez médiocre en terme de normalisation des noms de voie. De nombreux traitements de nettoyage ont été nécessaires pour extraire uniquement les noms patronymiques, les prénoms et autres titres et abréviations qualifiant les nom de personnalités. Il est donc possible que vous ne trouviez pas une rue que vous connaissez. Autre difficulé rencontrée avec cette base de données, on peut trouver de nombreuses dénominations pour une même personnalité (par exemple 115 variantes pour le 'Général De Gaulle').<br/></br></br>Réalisation: <a href='https://twitter.com/Gaetan_LAVENU' target='_new'>Gaetan LAVENU</a></p><table><tr><td style='width: 450px'><a href='http://www.esrifrance.fr' target='_new'><img src='./images/logo_EF.png'/></a></td><td style='width: 450px'><p align='right'><button class='GreyButton' type='button' onClick='dijit.byId(\"AboutDialog\").hide()'>Retour à l'application</button></p></td></tr></table></div>",
+        "duration": 1000,
+        "draggable": false
+       });
+
+      myAboutDialog.attr('closable',true);
+      myAboutDialog.startup();
+
+
+      arcgisUtils.createMap(webmap,"map").then(function(response){
+      map = response.map;
+
+      simpleJsonH = new SimpleMarkerSymbol({
+          "color": [46,193,255,255],
+          "size": 4,
+          "angle": 0,
+          "xoffset": 0,
+          "yoffset": 0,
+          "type": "esriSMS",
+          "style": "esriSMSCircle",
+          "outline": {
+            "color": [46,193,255,70],
+            "width": 5,
+            "type": "esriSLS",
+            "style": "esriSLSSolid"
+          }
+        });
+
+      rendH = new SimpleRenderer(simpleJsonH);
+
+      simpleJsonF = new SimpleMarkerSymbol({
+          "color": [255,0,255,255],
+          "size": 4,
+          "angle": 0,
+          "xoffset": 0,
+          "yoffset": 0,
+          "type": "esriSMS",
+          "style": "esriSMSCircle",
+          "outline": {
+            "color": [255,0,255,90],
+            "width": 5,
+            "type": "esriSLS",
+            "style": "esriSLSSolid"
+          }
+      });
+
+      rendF = new SimpleRenderer(simpleJsonF);
+
+      simpleJsonS = new SimpleMarkerSymbol({
+          "color": [255,255,0,255],
+          "size": 4,
+          "angle": 0,
+          "xoffset": 0,
+          "yoffset": 0,
+          "type": "esriSMS",
+          "style": "esriSMSCircle",
+          "outline": {
+            "color": [255,255,0,70],
+            "width": 5,
+            "type": "esriSLS",
+            "style": "esriSLSSolid"
+          }
+        });
+
+      rendS = new SimpleRenderer(simpleJsonS);
+
+
+      var home = new HomeButton({
+        "map": map
+      }, "HomeButton");
+
+      home.startup();
+
+      map.infoWindow.resize(150,30);
+
+      dialog = new TooltipDialog({
+          "id": "tooltipDialog"
+        });
+        dialog.startup();
+
+
+       featureCollection_H = {
+          "layerDefinition": null,
+          "featureSet": {
+            "features": [],
+            "geometryType": "esriGeometryPoint"
+          }
+        };
+
+        featureCollection_H.layerDefinition = {
+          "geometryType": "esriGeometryPoint",
+          "objectIdField": "ObjectID",
+          "drawingInfo": {
+            "renderer": {
+            }
+          },
+          "fields": [{
+            "name": "ObjectID",
+            "alias": "ObjectID",
+            "type": "esriFieldTypeOID"
+          }, {
+            "name": "nom_commune",
+            "alias": "nom_commune",
+            "type": "esriFieldTypeString"
+          }]
+        };
+
+        featureLayer = new FeatureLayer(featureCollection_H, {
+          id: 'Communes'
+        });
+
+        featureLayer.setOpacity(0);
+        map.addLayer(featureLayer);
+        queryCodeInseePoints();
+
+
+         //Enable mouse event on the features of the FeatureLayer
+        featureLayer.on("load", function(){
+          featureLayer.enableMouseEvents();
+        });
+
+
+        //listen for when the onMouseOut event fires to close the MapTip
+        featureLayer.on("mouse-out", function(evt){
+          map.graphics.clear();
+          dijitPopup.close(dialog);
+        });
+
+
+        //listen for when the onMouseOver event fires
+        featureLayer.on("mouse-over", function(evt){
+          var t = "${NOM_COM}";
+          var content = esriLang.substitute(evt.graphic.attributes,t);
+          var highlightSymbol = new SimpleMarkerSymbol(
+              SimpleMarkerSymbol.STYLE_CIRCLE,
+              12, null,
+              new Color([0, 255, 255, 0.95])
+            );
+
+          var highlightGraphic = new Graphic(evt.graphic.geometry,highlightSymbol);
+          map.graphics.add(highlightGraphic);
+
+          dialog.setContent(content);
+
+          dijitPopup.open({
+            popup: dialog,
+            x: evt.pageX,
+            y: evt.pageY
+          });
+
+        });  // on mouse-over
+
+
+      });
+
+
+
+    function queryTop100_H() {
+
+
+      var requestHandle = esriRequest({
+        url: "codes_insee_pour_top_120_hommes.csv",
+        handleAs: "text"
+      });
+      requestHandle.then(queryTop100_H_Succeeded, requestFailed);
+    }
+
+    function queryTop100_F() {
+
+
+      var requestHandle = esriRequest({
+        url: "codes_insee_pour_top_120_femmes.csv",
+        handleAs: "text"
+      });
+      requestHandle.then(queryTop100_F_Succeeded, requestFailed);
+    }
+
+
+    function queryCodeInseePoints() {
+
+      var requestHandle = esriRequest({
+        url: "codes_insee_points.csv",
+        handleAs: "text"
+      });
+      requestHandle.then(queryCodeInseePoints_Succeeded, requestFailed);
+    }
+
+    function queryTop100_H_Succeeded(response) {
+
+        var selectH = document.getElementById("select_H");
+
+        if (isMobile){
+          selectH.multiple=false;
+          selectH.style.height="20px";
+          selectH.style.marginTop="5px";
+          document.getElementById("HOMMES").style.height="50px";
+        }
+
+        data=response.split("\n");
+
+        for (var i = 0; i < data.length; i++) {
+
+          nom=data[i].split(";")[0];
+          occurence=data[i].split(";")[1];
+          codes=data[i].split(";")[2];
+
+          CodesInsee_H.push(codes.split("-"))
+          selectH.options[selectH.options.length] = new Option(eval(i+1).toString() + ". " + nom + " (" + occurence +")",i);
+
+          if(i==data.length-1){
+            queryTop100_F();
+            //console.log("chargement top 100 homme OK");
+            }
+        }
+    }
+
+    function queryTop100_F_Succeeded(response) {
+
+        var selectF = document.getElementById("select_F");
+
+        if (isMobile){
+          selectF.multiple=false;
+          selectF.style.height="20px";
+          selectF.style.marginTop="5px";
+          document.getElementById("FEMMES").style.height="50px";
+
+        }
+
+
+        data=response.split("\n");
+
+        for (var i = 0; i < data.length; i++) {
+          //console.log(i);
+          nom=data[i].split(";")[0];
+          occurence=data[i].split(";")[1];
+          codes=data[i].split(";")[2];
+
+          CodesInsee_F.push(codes.split("-"))
+          selectF.options[selectF.options.length] = new Option(eval(i+1).toString() + ". " + nom + " (" + occurence +")",i);
+
+          if(i==data.length-1){
+            document.getElementById("HOMMES").style.visibility="visible";
+            document.getElementById("FEMMES").style.visibility="visible";
+            document.getElementById("searchdiv").style.visibility="visible";
+            document.getElementById("aboutdiv").style.visibility="visible";
+            document.getElementById("img_loading").style.visibility="hidden";
+            console.log("chargement top 100 femme OK");
+
+            }
+        }
+    }
+
+
+
+    function queryCodeInseePoints_Succeeded(response) {
+
+        tablo=response.split("\n");
+        for (var i = 0; i < tablo.length; i++) {
+          data=tablo[i]
+          code_insee=data.split(",")[0];
+          nom_commune=data.split(",")[1];
+          longitude=data.split(",")[2];
+          latitude=data.split(",")[3];
+          CodesInsee_Points[code_insee.toString()]=new Point(longitude,latitude);
+          noms_communes[code_insee.toString()]=nom_commune
+
+         if(i==(tablo.length-1)){
+            queryTop100_H();
+            //console.log("chargement code insee OK");
+          };
+        }
+
+    }
+
+
+    function requestFailed(error, io) {
+      console.log("Failed: ", error);
+      dojo.addClass(dojo.byId("content"), "failure");
+      requestCompleted();
+
+      dojo.toJsonIndentStr = "  ";
+      dojo.byId("content").value = dojo.toJson(error, true);
+    }
+
+
+  }); ///  AMD ///////////
+
+
+
+  function display_H(index){
+
+      var features=[];
+
+      featureLayer.setVisibility(false);
+      featureLayer.applyEdits(null, null, featureLayer.graphics);
+
+      codes_insee=CodesInsee_H[index]
+      for(var i=0; i<codes_insee.length; i++){
+        code_insee=codes_insee[i];
+        var attr = {"NOM_COM": noms_communes[code_insee]};
+        var mygraphic = new esri.Graphic(CodesInsee_Points[code_insee],null,attr);
+        features.push(mygraphic);
+      }
+      featureLayer.applyEdits(features, null, null);
+      featureLayer.setRenderer(rendH);
+
+      featureLayer.setVisibility(true);
+      FadeIn(0.1);
+
+      nom=document.getElementById("select_H").options[document.getElementById("select_H").selectedIndex].text.split("(")[0].split(". ")[1]
+      var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
+      document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
+      document.getElementById("wikipediadiv").style.visibility="visible";
+
+
+    }
+
+    function display_F(index){
+
+      var features=[];
+      featureLayer.setVisibility(false);
+      featureLayer.applyEdits(null, null, featureLayer.graphics);
+
+      codes_insee=CodesInsee_F[index]
+      for(var i=0; i<codes_insee.length; i++){
+        code_insee=codes_insee[i];
+        var attr = {"NOM_COM": noms_communes[code_insee]};
+        var mygraphic = new esri.Graphic(CodesInsee_Points[code_insee],null,attr);
+        features.push(mygraphic);
+      }
+      featureLayer.applyEdits(features, null, null);
+      featureLayer.setRenderer(rendF);
+
+      featureLayer.setVisibility(true);
+      FadeIn(0.1);
+
+      nom=document.getElementById("select_F").options[document.getElementById("select_F").selectedIndex].text.split("(")[0].split(". ")[1]
+      var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
+      document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
+      document.getElementById("wikipediadiv").style.visibility="visible";
+
+
+    }
+
+    function RechercheCommunes_Par_ID_VOIE(id_voie){
+        var queryTask = new esri.tasks.QueryTask("http://services.arcgis.com/d3voDfTFbHOCRwVR/arcgis/rest/services/APPLI_NOMS_VOIES/FeatureServer/0");
+        var query = new esri.tasks.Query();
+        query.outFields = ["NOM_COM"];
+        query.where = "NEW_ID_VOIE = " + id_voie;
+        query.returnGeometry = true;
+        queryTask.execute(query, ResultatCommunes, null);
+    }
+
+    function ResultatCommunes(featureset){
+      featureset_from_search = featureset;
+      FadeOutS(1);
+    }
+
+    function AfficherCommunes(){
+      var features=[];
+      featureLayer.setVisibility(false);
+      featureLayer.applyEdits(null, null, featureLayer.graphics);
+
+      for(var i=0; i<featureset_from_search.features.length; i++){
+        var feature = featureset_from_search.features[i];
+        features.push(feature);
+      }
+      featureLayer.applyEdits(features, null, null);
+      featureLayer.setRenderer(rendS);
+
+      featureLayer.setVisibility(true);
+      FadeIn(0.1);
+
+      var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + document.getElementById("search").value;
+      document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
+      document.getElementById("wikipediadiv").style.visibility="visible";
+    }
+
+    function FadeIn(op){
+      featureLayer.setOpacity(op);
+      if(op<1){
+        var newop=op+0.05;
+        setTimeout("FadeIn("+newop+")",80);
+      }
+
+    }
+
+    function FadeOutH(op){
+      //gestion du cas du premier clique dans la liste top 100 H sur une carte vide
+      if(featureLayer.opacity==0){
+        display_H(document.getElementById("select_H").selectedIndex);
+        return;
+      }
+
+      featureLayer.setOpacity(op);
+      if(op>0){
+        var newop=op-0.1;
+        setTimeout("FadeOutH("+newop+")",50);
+      }
+      else{
+        display_H(document.getElementById("select_H").selectedIndex)
+      }
+    }
+
+
+    function FadeOutF(op){
+      //gestion du cas du premier clique dans la liste top 100 F sur une carte vide
+      if(featureLayer.opacity==0){
+        display_F(document.getElementById("select_F").selectedIndex);
+         return;
+      }
+
+      featureLayer.setOpacity(op);
+      if(op>0){
+        var newop=op-0.1;
+        //console.log(newop);
+        setTimeout("FadeOutF("+newop+")",50);
+      }
+      else{
+        display_F(document.getElementById("select_F").selectedIndex)
+      }
+    }
+
+    function FadeOutS(op){
+      //gestion du cas de la première recherche sur une carte vide
+      if(featureLayer.opacity==0){
+        AfficherCommunes();
+        return;
+      }
+
+      featureLayer.setOpacity(op);
+      if(op>0){
+        var newop=op-0.1;
+        setTimeout("FadeOutS("+newop+")",50);
+      }
+      else{
+        AfficherCommunes();
+      }
+    }
+
+
+  </script>
+
+
+
+</head>
+<body>
+
+<div id="img_loading">
+  <img src="./images/loading.gif"/>
+</div>
+
+
+  <div id="map" >
+    <div id="HomeButton"></div>
+
+    <div class="searchdiv" id="searchdiv"  style="visibility: hidden">
+          <b>Rechercher un nom de personne:</b><br/>
+          <input class="typeahead" id="search" type="text" placeholder="Votre nom" >
+    </div>
+    <div class="Rounded_Gray" id="wikipediadiv"  style="visibility: hidden; top: 20px; width: 170px; right: 110px" align="center">
+          <input type="image" id="wikipedia" src="./images/logo_wikipedia.png" alt='Rechercher cette personnalité sur Wikipédia'></input>
+    </div>
+    <div class="Rounded_Gray" id="aboutdiv"  style="visibility: hidden; top: 20px; width: 70px; right: 20px" align="center">
+          <input type="image" id="about" onclick="dijit.byId('AboutDialog').show()" src="./images/about.png" alt='A propos de cette application'></input>
+    </div>
+
+    <div id="HOMMES" style="visibility: hidden">
+        <b>Top 100 des personnalités masculines</b><br/>
+        <select id="select_H"  onchange="FadeOutH(1);"   multiple='multiple' ></select>
+    </div>
+    <div id="FEMMES" style="visibility: hidden">
+      <b>Top 100 des personnalités féminines</b><br/>
+        <select id="select_F"  onchange="FadeOutF(1);" multiple='multiple' ></select>
+    </div>
+    </div>
+  </div>
+</body>
+</html>
