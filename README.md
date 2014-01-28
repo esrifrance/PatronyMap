@@ -1,8 +1,8 @@
 PatronymoGeo
 ============
 
-PatronymoGeo
+Description PatronymoGeo .... bla bla bla
 
-# pour memo
+# xxxxx
 
-Leaflet plugin for [ArcGIS Services](http://developers.arcgis.com). Currently Esri Leaflet supports loading Esri [basemaps](#basemaplayer) and [feature services](#featurelayer), as well as [tiled](#tiledmaplayer) and [dynamic](#dynamicmaplayer) map services.
+xxxxx [Atexte du lien](http://developers.arcgis.com). xxxxx xxxxx  [basemaps](#basemaplayer) and [feature services](#featurelayer), as well as [tiled](#tiledmaplayer) and [dynamic](#dynamicmaplayer) map services.
