@@ -353,7 +353,6 @@
 
           if(i==data.length-1){
             queryTop100_F();
-            //console.log("chargement top 100 homme OK");
             }
         }
     }
@@ -375,7 +374,6 @@
         data=response.split("\n");
 
         for (var i = 0; i < data.length; i++) {
-          //console.log(i);
           nom=data[i].split(";")[0];
           occurence=data[i].split(";")[1];
           codes=data[i].split(";")[2];
@@ -390,8 +388,6 @@
             document.getElementById("aboutdiv").style.visibility="visible";
             document.getElementById("github").style.visibility="visible";
             document.getElementById("img_loading").style.visibility="hidden";
-            console.log("chargement top 100 femme OK");
-
             }
         }
     }
@@ -459,8 +455,6 @@
       var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
       document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
       document.getElementById("wikipediadiv").style.visibility="visible";
-
-
     }
 
 
