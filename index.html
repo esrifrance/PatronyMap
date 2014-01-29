@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
-  <link rel="shortcut icon" type="image/x-icon" href="http://www.arcgis.com/favicon.ico">
   <title>PatronymoGéo</title>
   <link rel="stylesheet" href="http://js.arcgis.com/3.8/js/dojo/dijit/themes/tundra/tundra.css">
   <link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.8/js/esri/css/esri.css">
@@ -48,6 +47,21 @@
     var isMobile = false;
 
 
+    document.head = document.head || document.getElementsByTagName('head')[0];
+
+
+     var link = document.createElement('link'),
+         oldLink = document.getElementById('dynamic-favicon');
+     link.id = 'dynamic-favicon';
+     link.rel = 'shortcut icon';
+     link.href = 'http://www.arcgis.com/favicon.ico';
+     if (oldLink) {
+      document.head.removeChild(oldLink);
+     }
+     document.head.appendChild(link);
+
+
+    // Détection des tablettes Adroid et iOS
     require(["dojo/sniff"], function(sniff){
     if(sniff("ios") || sniff("android")){
       isMobile=true;
@@ -55,7 +69,7 @@
     });
 
 
-
+    // Définition de la Web Map ArcGIS Online servant de base de la carto de cette application
     webmap.item = {
       "title":"World_Dark_Gray",
       "snippet": "World_Dark_Gray",
@@ -79,37 +93,48 @@
       "version": "1.1"
     };
 
+
+    // Début du chargement AMD
     require([
       "esri/map",
       "esri/request",
       "esri/renderers/SimpleRenderer",
-      "esri/dijit/Geocoder",
       "esri/layers/FeatureLayer",
       "esri/symbols/SimpleMarkerSymbol", "esri/symbols/PictureMarkerSymbol",
       "esri/geometry/Point", "esri/graphic",
       "esri/arcgis/utils", "esri/lang","esri/dijit/HomeButton",
       "dojo/dom-style", "dijit/TooltipDialog", "dijit/Dialog", "dijit/popup",
       "dojo/parser","dojo/_base/Color", "dojo/on","dojo/domReady!"
-    ], function( Map, esriRequest, SimpleRenderer, Geocoder, FeatureLayer, SimpleMarkerSymbol,PictureMarkerSymbol, Point, Graphic, arcgisUtils, esriLang,
-      HomeButton, domStyle, TooltipDialog, Dialog, dijitPopup, parser, Color, on)  {
+    ], function( Map, 
+      esriRequest, 
+      SimpleRenderer, 
+      FeatureLayer, 
+      SimpleMarkerSymbol,PictureMarkerSymbol, 
+      Point, Graphic, 
+      arcgisUtils, esriLang, HomeButton, 
+      domStyle, TooltipDialog, Dialog, dijitPopup, 
+      parser, Color, on)  {
 
       parser.parse();
 
+      // Création et affichage de la boite de dialogue 'Banner'
       var myWelcomeBanner = new Dialog({
         "id": "WelcomeBanner",
         "title": "",
-        "style": "opacity: 0.8; font-size: 9pt; color: black; width: 900px; height: 600px; overflow: auto; background-image:url('./images/banner.jpg'); vertical-alignment: center",
+        "style": "opacity: 0.8; font-size: 9pt; color: black; overflow:no; width: 750px; height: 500px; background-image:url('./images/banner_750_500.jpg'); horizontal-alignment: center; vertical-alignment: center; position: relative;",
         "class": "",
-        "content": "<div style='position:absolute; left: 360px; bottom: 20px'><button class='GreyButton' type='button' onClick='dijit.byId(\"WelcomeBanner\").hide()'>Accéder à l'application</button></div>",
+        "content": "<div id='WelcomeBannerContent' style='position: relative; width: 750px; height: 500px;'><button class='GreyButton' id='GoButton' style='position: relative; z-index: 99; left: 290px; top: 440px' type='button' onClick='dijit.byId(\"WelcomeBanner\").hide()'>Accéder à l'application</button></div>",
         "duration": 1000,
         "draggable": false
        });
 
       myWelcomeBanner.attr('closable',true);
-
+ 
       myWelcomeBanner.startup();
       myWelcomeBanner.show();
 
+
+      // Création de la boite de dialogue 'A propos'
       var myAboutDialog = new Dialog({
         "id": "AboutDialog",
         "title": "A propos de cette application",
@@ -123,7 +148,8 @@
       myAboutDialog.attr('closable',true);
       myAboutDialog.startup();
 
-
+      // Création de la map à partir de la Web Map ArcGIS Online
+      // et construction des renderers pour les Hommes, Femmes et Search
       arcgisUtils.createMap(webmap,"map").then(function(response){
       map = response.map;
 
@@ -181,13 +207,14 @@
 
       rendS = new SimpleRenderer(simpleJsonS);
 
-
+      // Ajout d'un bouton Home pour retourner à l'etendue initiale de la carte
       var home = new HomeButton({
         "map": map
       }, "HomeButton");
 
       home.startup();
 
+      // Paramétrage d'une infobulle pour les points affichés sur la carte
       map.infoWindow.resize(150,30);
 
       dialog = new TooltipDialog({
@@ -196,7 +223,8 @@
         dialog.startup();
 
 
-       featureCollection_H = {
+       // Définition du FeatureLayer pour la couche de points représentant les communes
+       featureCollection = {
           "layerDefinition": null,
           "featureSet": {
             "features": [],
@@ -204,7 +232,7 @@
           }
         };
 
-        featureCollection_H.layerDefinition = {
+        featureCollection.layerDefinition = {
           "geometryType": "esriGeometryPoint",
           "objectIdField": "ObjectID",
           "drawingInfo": {
@@ -222,7 +250,7 @@
           }]
         };
 
-        featureLayer = new FeatureLayer(featureCollection_H, {
+        featureLayer = new FeatureLayer(featureCollection, {
           id: 'Communes'
         });
 
@@ -267,13 +295,11 @@
 
         });  // on mouse-over
 
-
       });
 
 
-
+    // Chargement de la liste des personnalités du top 100 Homme
     function queryTop100_H() {
-
 
       var requestHandle = esriRequest({
         url: "codes_insee_pour_top_120_hommes.csv",
@@ -282,8 +308,8 @@
       requestHandle.then(queryTop100_H_Succeeded, requestFailed);
     }
 
+    // Chargement de la liste des personnalités du top 100 Femme
     function queryTop100_F() {
-
 
       var requestHandle = esriRequest({
         url: "codes_insee_pour_top_120_femmes.csv",
@@ -292,7 +318,7 @@
       requestHandle.then(queryTop100_F_Succeeded, requestFailed);
     }
 
-
+    // Charegement de la liste des codes INSEE et des lat/long/nom de commune associés
     function queryCodeInseePoints() {
 
       var requestHandle = esriRequest({
@@ -302,6 +328,7 @@
       requestHandle.then(queryCodeInseePoints_Succeeded, requestFailed);
     }
 
+    // Résultats du chargement des noms de personnalité et des codes INSEE associés au top 100 Homme
     function queryTop100_H_Succeeded(response) {
 
         var selectH = document.getElementById("select_H");
@@ -331,6 +358,7 @@
         }
     }
 
+    // Résultats du chargement des noms de personnalité et des codes INSEE associés au top 100 Femme
     function queryTop100_F_Succeeded(response) {
 
         var selectF = document.getElementById("select_F");
@@ -360,6 +388,7 @@
             document.getElementById("FEMMES").style.visibility="visible";
             document.getElementById("searchdiv").style.visibility="visible";
             document.getElementById("aboutdiv").style.visibility="visible";
+            document.getElementById("github").style.visibility="visible";
             document.getElementById("img_loading").style.visibility="hidden";
             console.log("chargement top 100 femme OK");
 
@@ -369,6 +398,8 @@
 
 
 
+    // Résultats des lat/long/nom des communes pour tous les codes INSEE des communes ayant
+    // des noms de voies relatives à des personnalités
     function queryCodeInseePoints_Succeeded(response) {
 
         tablo=response.split("\n");
@@ -400,11 +431,11 @@
     }
 
 
-  }); ///  AMD ///////////
+  }); ///  Fin du chargement AMD ///////////
 
 
-
-  function display_H(index){
+    // Affichage des points correspondant au choix dans la liste du top 100 Homme
+    function display_H(index){
 
       var features=[];
 
@@ -432,6 +463,8 @@
 
     }
 
+
+    // Affichage des points correspondant au choix dans la liste du top 100 Femme
     function display_F(index){
 
       var features=[];
@@ -455,10 +488,9 @@
       var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
       document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
       document.getElementById("wikipediadiv").style.visibility="visible";
-
-
     }
 
+    // Paramétrage et lancement de la fonction de recherche des communes
     function RechercheCommunes_Par_ID_VOIE(id_voie){
         var queryTask = new esri.tasks.QueryTask("http://services.arcgis.com/d3voDfTFbHOCRwVR/arcgis/rest/services/APPLI_NOMS_VOIES/FeatureServer/0");
         var query = new esri.tasks.Query();
@@ -468,11 +500,14 @@
         queryTask.execute(query, ResultatCommunes, null);
     }
 
+    // Stockage des résultats de la requête sur les communes portant ce nom de voie
+    // et lancement FadeOut sur les points actuellement affichés sur la carte
     function ResultatCommunes(featureset){
       featureset_from_search = featureset;
       FadeOutS(1);
     }
 
+    // Traitement des de la requête sur les communes portant ce nom de voie
     function AfficherCommunes(){
       var features=[];
       featureLayer.setVisibility(false);
@@ -493,6 +528,7 @@
       document.getElementById("wikipediadiv").style.visibility="visible";
     }
 
+    // FadeIn sur la couche des points
     function FadeIn(op){
       featureLayer.setOpacity(op);
       if(op<1){
@@ -502,8 +538,9 @@
 
     }
 
+    // FadeOut sur les points actuellement affichés sur la carte avant affichage issus du top 100 Homme
     function FadeOutH(op){
-      //gestion du cas du premier clique dans la liste top 100 H sur une carte vide
+      //gestion du cas du premier clique dans la liste top 100 H sur une carte vide, alors pas de FadeOut
       if(featureLayer.opacity==0){
         display_H(document.getElementById("select_H").selectedIndex);
         return;
@@ -519,9 +556,9 @@
       }
     }
 
-
+    // FadeOut sur les points actuellement affichés sur la carte avant affichage issus du top 100 Femme
     function FadeOutF(op){
-      //gestion du cas du premier clique dans la liste top 100 F sur une carte vide
+      //gestion du cas du premier clique dans la liste top 100 F sur une carte vide, alors pas de FadeOut
       if(featureLayer.opacity==0){
         display_F(document.getElementById("select_F").selectedIndex);
          return;
@@ -538,8 +575,9 @@
       }
     }
 
+    // FadeOut sur les points actuellement affichés sur la carte avant affichage issus du Search
     function FadeOutS(op){
-      //gestion du cas de la première recherche sur une carte vide
+      //gestion du cas de la première recherche sur une carte vide, alors pas de FadeOut
       if(featureLayer.opacity==0){
         AfficherCommunes();
         return;
@@ -580,6 +618,9 @@
     </div>
     <div class="Rounded_Gray" id="aboutdiv"  style="visibility: hidden; top: 20px; width: 70px; right: 20px" align="center">
           <input type="image" id="about" onclick="dijit.byId('AboutDialog').show()" src="./images/about.png" alt='A propos de cette application'></input>
+    </div>
+    <div id="github"  style="visibility: hidden; left: 0px; bottom: -5px">
+          <a href="https://github.com/esrifrance/PatronymoGeo" target="_new"><img src="./images/ForkMeOnGithub.png" alt='Accéder au code source via GitHub'></a>
     </div>
 
     <div id="HOMMES" style="visibility: hidden">
