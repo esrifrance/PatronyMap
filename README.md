@@ -16,9 +16,9 @@ L'application cartographique est basée sur [l'API ArcGIS for JavaScript](http:/
 
 L'affichage des communes possédant des voies parmi les 100 noms de personnalités les plus courantes (top 100 masculin et féminin) est impléneter de manière locale par le chargement de fichiers csv contenant la liste des noms de personnalités et des codes INSEE associés. Une liste de ces codes INSSEE fait la correspondance avec les latitudes, les longitudes et le nom de ces communes.
 
-Pour la recherche libre, 2 Feature Services ArcGIS Online sont utilisés. Le premier Feature Service (98000 entités) contient les occurences uniques de chaque nom de personnalité extraites de la base de données Fantoir ainsi qu'un identifiant unique associé à chacun de ces noms de voie. Ce service permet la recherche d'une voie et l'implémentation de l'autocompletion dans la zone de recherche libre. Le second Feature Service (300000 entités) permet de retrouver la liste des communes correspondant aux noms de personnalité choisi par l'utilisateurs.
+Pour la recherche libre, deux services web Rest ArcGIS Online sont utilisés. Le [premier Feature Service](http://services.arcgis.com/d3voDfTFbHOCRwVR/ArcGIS/rest/services/APPLI_NOMS_VOIES_UNIQUES/FeatureServer/0) (98000 entités) contient les occurences uniques de chaque nom de personnalité extraites de la base de données Fantoir ainsi qu'un identifiant unique associé à chacun de ces noms de voie. Ce service permet la recherche d'une voie et l'implémentation de l'autocompletion dans la zone de recherche libre. Le [second Feature Service](http://services.arcgis.com/d3voDfTFbHOCRwVR/ArcGIS/rest/services/APPLI_NOMS_VOIES_UNIQUES/FeatureServer/0)  (300000 entités) permet de retrouver la liste des communes correspondant aux noms de personnalité choisi par l'utilisateurs.
 
-Vous pouvez tester l'application ici](http://apps.arcorama.fr/PatronymoGeo).
+Vous pouvez accéder à l'application en ligne [à partir de ce lien](http://apps.arcorama.fr/PatronymoGeo).
 
 
 ###Avertissements
