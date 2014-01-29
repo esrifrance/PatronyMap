@@ -14,9 +14,9 @@ L'application repose sur les informations fournies par la base de données Fanto
 
 L'application cartographique est basée sur [l'API ArcGIS for JavaScript](http://developers.arcgis.com/javascript/) d'[Esri](http://www.esri.com) et des services web hébergés sur la plateforme [ArcGIS Online](http://www.arcgis.com). 
 
-L'affichage des communes possédant des voies parmi les 100 noms de personnalités les plus courantes (top 100 masculin et féminin) est impléneter de manière statique par le chargement de fichiers csv contenant la liste des noms de personnalités et des codes INSEE associés. Une liste de ces codes INSSEE fait la correspondance avec les latitudes, les longitudes et le nom de ces communes.
+L'affichage des communes possédant des voies parmi les 100 noms de personnalités les plus courantes (top 100 masculin et féminin) est impléneter de manière locale par le chargement de fichiers csv contenant la liste des noms de personnalités et des codes INSEE associés. Une liste de ces codes INSSEE fait la correspondance avec les latitudes, les longitudes et le nom de ces communes.
 
-Pour la recherche libre, 2 Feature Services ArcGIS Online sont utilisés. Le premier Feature Service contient les occurences uniques de chaque nom de personnalité extraites de la base de données Fantoir ainsi qu'un identifiant unique associé à chacun de ces noms de voie. Ce service permet la recherche d'une voie et l'implémentation de l'autocompletion dans la zone de recherche libre. Le second Feature Service permet de retrouver la liste des communes
+Pour la recherche libre, 2 Feature Services ArcGIS Online sont utilisés. Le premier Feature Service (98000 entités) contient les occurences uniques de chaque nom de personnalité extraites de la base de données Fantoir ainsi qu'un identifiant unique associé à chacun de ces noms de voie. Ce service permet la recherche d'une voie et l'implémentation de l'autocompletion dans la zone de recherche libre. Le second Feature Service (300000 entités) permet de retrouver la liste des communes correspondant aux noms de personnalité choisi par l'utilisateurs.
 
 Vous pouvez tester l'application ici](http://apps.arcorama.fr/PatronymoGeo).
 
