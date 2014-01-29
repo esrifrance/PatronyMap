@@ -105,14 +105,14 @@
       "esri/arcgis/utils", "esri/lang","esri/dijit/HomeButton",
       "dojo/dom-style", "dijit/TooltipDialog", "dijit/Dialog", "dijit/popup",
       "dojo/parser","dojo/_base/Color", "dojo/on","dojo/domReady!"
-    ], function( Map, 
-      esriRequest, 
-      SimpleRenderer, 
-      FeatureLayer, 
-      SimpleMarkerSymbol,PictureMarkerSymbol, 
-      Point, Graphic, 
-      arcgisUtils, esriLang, HomeButton, 
-      domStyle, TooltipDialog, Dialog, dijitPopup, 
+    ], function( Map,
+      esriRequest,
+      SimpleRenderer,
+      FeatureLayer,
+      SimpleMarkerSymbol,PictureMarkerSymbol,
+      Point, Graphic,
+      arcgisUtils, esriLang, HomeButton,
+      domStyle, TooltipDialog, Dialog, dijitPopup,
       parser, Color, on)  {
 
       parser.parse();
@@ -129,7 +129,7 @@
        });
 
       myWelcomeBanner.attr('closable',true);
- 
+
       myWelcomeBanner.startup();
       myWelcomeBanner.show();
 
@@ -302,7 +302,7 @@
     function queryTop100_H() {
 
       var requestHandle = esriRequest({
-        url: "codes_insee_pour_top_120_hommes.csv",
+        url: "codes_insee_pour_top_100_hommes.csv",
         handleAs: "text"
       });
       requestHandle.then(queryTop100_H_Succeeded, requestFailed);
@@ -312,7 +312,7 @@
     function queryTop100_F() {
 
       var requestHandle = esriRequest({
-        url: "codes_insee_pour_top_120_femmes.csv",
+        url: "codes_insee_pour_top_100_femmes.csv",
         handleAs: "text"
       });
       requestHandle.then(queryTop100_F_Succeeded, requestFailed);
