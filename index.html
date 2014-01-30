@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="http://js.arcgis.com/3.8/js/dojo/dijit/themes/tundra/tundra.css">
   <link rel="stylesheet" type="text/css" href="http://js.arcgis.com/3.8/js/esri/css/esri.css">
   <link rel="stylesheet" href="./css/Fantoir.css">
+  <link href='http://apps.arcorama.fr/favicon.ico' rel='icon' type='image/x-icon'/>
+  <link href='http://apps.arcorama.fr/PatronymoGeo' rel='canonical'/>
 
   <script>var dojoConfig = { parseOnLoad: true };</script>
 
@@ -16,13 +18,17 @@
   <script src="./js/RechercheFantoir.js"></script>
   <script src="//js.arcgis.com/3.8/"></script>
 
+  <script src="./js/translate.js"></script>
 
   <script>
+    var language="fr";
     var map;
     var dialog;
     var webmap = {};
     var featureLayer;
     var featureCollection;
+
+    var myAboutDialog;
 
     var Noms_H = new Array();
     var CodesInsee_H = new Array();
@@ -45,21 +51,6 @@
     var noms_communes = {};
 
     var isMobile = false;
-
-
-    document.head = document.head || document.getElementsByTagName('head')[0];
-
-
-     var link = document.createElement('link'),
-         oldLink = document.getElementById('dynamic-favicon');
-     link.id = 'dynamic-favicon';
-     link.rel = 'shortcut icon';
-     link.href = 'http://www.arcgis.com/favicon.ico';
-     if (oldLink) {
-      document.head.removeChild(oldLink);
-     }
-     document.head.appendChild(link);
-
 
     // Détection des tablettes Adroid et iOS
     require(["dojo/sniff"], function(sniff){
@@ -121,9 +112,9 @@
       var myWelcomeBanner = new Dialog({
         "id": "WelcomeBanner",
         "title": "",
-        "style": "opacity: 0.8; font-size: 9pt; color: black; overflow:no; width: 750px; height: 500px; background-image:url('./images/banner_750_500.jpg'); horizontal-alignment: center; vertical-alignment: center; position: relative;",
+        "style": "opacity: 0.8; font-size: 8pt; color: black; overflow:no; top: 15%; width: 750px; height: 500px; background-image:url('./images/banner_750_500_fr.jpg'); vertical-alignment: center",
         "class": "",
-        "content": "<div id='WelcomeBannerContent' style='position: relative; width: 750px; height: 500px;'><button class='GreyButton' id='GoButton' style='position: relative; z-index: 99; left: 290px; top: 440px' type='button' onClick='dijit.byId(\"WelcomeBanner\").hide()'>Accéder à l'application</button></div>",
+        "content": "<div id='WelcomeBannerContent' style='position: relative; width: 750px; height: 550px;'><div style='position: relative; width: 100px; height: 47px; z-index: 99;top: 30px; left:630px'><img id='image_language' onclick='ChangeLanguage();console.log(\"toto\")' src='./images/go_en.png' /></div><button class='GreyButton' id='GoButton' style='position: relative; z-index: 99; left: 290px; top: 380px' type='button' onClick='dijit.byId(\"WelcomeBanner\").hide()'>Accéder à l'application</button></div>",
         "duration": 1000,
         "draggable": false
        });
@@ -135,12 +126,12 @@
 
 
       // Création de la boite de dialogue 'A propos'
-      var myAboutDialog = new Dialog({
+      myAboutDialog = new Dialog({
         "id": "AboutDialog",
         "title": "A propos de cette application",
-        "style": "opacity: 0.8; font-size: 9pt; color: black; width: 900px; height: 600px; overflow: auto; vertical-alignment: center",
+        "style": "opacity: 0.8; font-size: 8pt; color: black; top: 15%; width: 750px; height: 500px; overflow: no; horizontal-alignment: center; vertical-alignment: center",
         "class": "tundra",
-        "content": "<div><p align='justify' style>En France de nombreuses voies portent des noms de personnalités (scientifiques, artistes, responsables politiques, militaires,...). L'objectif de cette application est de présenter une cartographie des communes dont les voies portent des noms de personnalités. Vous pouvez rechercher un nom de personnalité puis afficher les communes contenant une voie correspondant à ce nom. La visualisation cartographique permet, par exemple, de constater des phénomènes géographiques intéressants liés à l'histoire ou à l'activité d'une personnalité. L'application propose également un accès rapide aux 100 noms de personnalités masculines et féminines que l'on retrouve le plus fréquement dans les noms de voie en France métropolitaine.<br/></br><b>Les données utilisées</b><br/></br>L'application repose sur les informations fournies par la base de données Fantoir 2013 diffusée en <a target='_new' href='http://wiki.data.gouv.fr/wiki/Licence_Ouverte_/_Open_Licence'>Licence Ouverte</a> et téléchargeable depuis <a target='_new' href='http://www.data.gouv.fr/fr/dataset/fichier-fantoir-des-voies-et-lieux-dits'>le site web data.gouv.fr</a> depuis novembre 2013. Cette base de données répertorie les 1,6 millions de noms de voie en France (Métropole + DOM-TOM). Par des traitements automatisés, seuls les noms de voies correspondant à des noms de personnalités ont été conservés, soit environ 289500 voies pour la Métropole.<br/></br><b>L'application</b><br/></br>L'application cartographique est basée sur <a href='http://developers.arcgis.com/javascript/' target='_new'>l'API ArcGIS for JavaScript</a> d'Esri et des services web hébergés sur la plateforme <a href='http://www.arcgis.com' target='_new'>ArcGIS Online</a>.<br/></br><b>Avertissements</b><br/></br>La base de données Fantoir est d'une qualité assez médiocre en terme de normalisation des noms de voie. De nombreux traitements de nettoyage ont été nécessaires pour extraire uniquement les noms patronymiques, les prénoms et autres titres et abréviations qualifiant les nom de personnalités. Il est donc possible que vous ne trouviez pas une rue que vous connaissez. Autre difficulé rencontrée avec cette base de données, on peut trouver de nombreuses dénominations pour une même personnalité (par exemple 115 variantes pour le 'Général De Gaulle').<br/></br></br>Réalisation: <a href='https://twitter.com/Gaetan_LAVENU' target='_new'>Gaetan LAVENU</a></p><table><tr><td style='width: 450px'><a href='http://www.esrifrance.fr' target='_new'><img src='./images/logo_EF.png'/></a></td><td style='width: 450px'><p align='right'><button class='GreyButton' type='button' onClick='dijit.byId(\"AboutDialog\").hide()'>Retour à l'application</button></p></td></tr></table></div>",
+        "content": "<div><p align='justify'>En France, de nombreuses voies portent des noms de personnalités (scientifiques, artistes, responsables politiques, militaires,...). L'objectif de cette application est de présenter une cartographie des communes dont les voies portent des noms de personnalités. Vous pouvez rechercher un nom de personnalité puis afficher les communes contenant une voie correspondant à ce nom. La visualisation cartographique permet, par exemple, de constater des phénomènes géographiques intéressants liés à l'histoire ou à l'activité d'une personnalité. L'application propose également un accès rapide aux 100 noms de personnalités masculines et féminines que l'on retrouve le plus fréquement dans les noms de voie en France métropolitaine.<br/></br><b>Les données utilisées</b><br/></br>L'application repose sur les informations fournies par la base de données Fantoir 2013 diffusée en <a target='_new' href='http://wiki.data.gouv.fr/wiki/Licence_Ouverte_/_Open_Licence'>Licence Ouverte</a> et téléchargeable depuis <a target='_new' href='http://www.data.gouv.fr/fr/dataset/fichier-fantoir-des-voies-et-lieux-dits'>le site web data.gouv.fr</a> depuis novembre 2013. Cette base de données répertorie les 1,6 millions de noms de voie en France (Métropole + DOM-TOM). Par des traitements automatisés, seuls les noms de voies correspondant à des noms de personnalités ont été conservés, soit environ 289500 voies pour la Métropole.<br/></br><b>L'application</b><br/></br>L'application cartographique est basée sur <a href='http://developers.arcgis.com/javascript/' target='_new'>l'API ArcGIS for JavaScript</a> d'Esri et des services web hébergés sur la plateforme <a href='http://www.arcgis.com' target='_new'>ArcGIS Online</a>.<br/></br><b>Avertissements</b><br/></br>La base de données Fantoir est d'une qualité assez médiocre en terme de normalisation des noms de voie. De nombreux traitements de nettoyage ont été nécessaires pour extraire uniquement les noms patronymiques, les prénoms et autres titres et abréviations qualifiant les nom de personnalités. Il est donc possible que vous ne trouviez pas une rue que vous connaissez. Autre difficulté rencontrée avec cette base de données, on peut trouver de nombreuses dénominations pour une même personnalité (par exemple 115 variantes pour le 'Général De Gaulle').<br/></br></br>Réalisation: <a href='https://twitter.com/Gaetan_LAVENU' target='_new'>Gaetan LAVENU</a></p><table><tr><td style='width: 450px'><a href='http://www.esrifrance.fr' target='_new'><img src='./images/logo_EF.png'/></a></td><td style='width: 450px'><p align='right'><button class='GreyButton' type='button' onClick='dijit.byId(\"AboutDialog\").hide()'>Retour à l'application</button></p></td></tr></table></div>",
         "duration": 1000,
         "draggable": false
        });
@@ -452,7 +443,13 @@
       FadeIn(0.1);
 
       nom=document.getElementById("select_H").options[document.getElementById("select_H").selectedIndex].text.split("(")[0].split(". ")[1]
-      var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
+      if (language=="fr"){
+        var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
+      }
+      else{
+        var url="http://en.wikipedia.org/wiki/Special:Search/" + nom;
+      }
+
       document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
       document.getElementById("wikipediadiv").style.visibility="visible";
     }
@@ -479,7 +476,13 @@
       FadeIn(0.1);
 
       nom=document.getElementById("select_F").options[document.getElementById("select_F").selectedIndex].text.split("(")[0].split(". ")[1]
-      var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
+      if (language=="fr"){
+        var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + nom;
+      }
+      else{
+        var url="http://en.wikipedia.org/wiki/Special:Search/" + nom;
+      }
+
       document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
       document.getElementById("wikipediadiv").style.visibility="visible";
     }
@@ -517,7 +520,13 @@
       featureLayer.setVisibility(true);
       FadeIn(0.1);
 
-      var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + document.getElementById("search").value;
+      if (language=="fr"){
+        var url="http://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche/" + document.getElementById("search").value;
+      }
+      else{
+        var url="http://en.wikipedia.org/wiki/Special:Search/" + document.getElementById("search").value;
+      }
+
       document.getElementById("wikipedia").onclick=function(){window.open(url,'_blank');};
       document.getElementById("wikipediadiv").style.visibility="visible";
     }
@@ -592,6 +601,8 @@
 
 
 
+
+
 </head>
 <body>
 
@@ -604,8 +615,8 @@
     <div id="HomeButton"></div>
 
     <div class="searchdiv" id="searchdiv"  style="visibility: hidden">
-          <b>Rechercher un nom de personne:</b><br/>
-          <input class="typeahead" id="search" type="text" placeholder="Votre nom" >
+          <b id="label_search_personne">Rechercher un nom de personne (ex: leblanc)</b><br/>
+          <input class="typeahead" id="search" type="text" placeholder="Un nom" >
     </div>
     <div class="Rounded_Gray" id="wikipediadiv"  style="visibility: hidden; top: 20px; width: 170px; right: 110px" align="center">
           <input type="image" id="wikipedia" src="./images/logo_wikipedia.png" alt='Rechercher cette personnalité sur Wikipédia'></input>
@@ -618,14 +629,21 @@
     </div>
 
     <div id="HOMMES" style="visibility: hidden">
-        <b>Top 100 des personnalités masculines</b><br/>
+        <b id="label_top100_H">Top 100 des personnalités masculines</b><br/>
         <select id="select_H"  onchange="FadeOutH(1);"   multiple='multiple' ></select>
     </div>
     <div id="FEMMES" style="visibility: hidden">
-      <b>Top 100 des personnalités féminines</b><br/>
+      <b id="label_top100_F">Top 100 des personnalités féminines</b><br/>
         <select id="select_F"  onchange="FadeOutF(1);" multiple='multiple' ></select>
     </div>
     </div>
   </div>
 </body>
+
+ <script src='http://www.google-analytics.com/urchin.js' type='text/javascript'>
+ </script>
+ <script type='text/javascript'>
+ _uacct = "UA-2018286-7";
+ urchinTracker();
+</script>
 </html>
