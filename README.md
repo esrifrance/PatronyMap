@@ -1,9 +1,9 @@
-PatronymoGeo
+PatronyMap
 ============
 
-En France de nombreuses voies portent des noms de personnalités (scientifiques, artistes, responsables politiques, militaires,...). L'objectif de l'application PatronymoGéo est de présenter une cartographie des communes dont les voies portent des noms de personnalités. Vous pouvez rechercher un nom de personnalité puis afficher les communes contenant une voie correspondant à ce nom. La visualisation cartographique permet, par exemple, de constater des phénomènes géographiques intéressants liés à l'histoire ou à l'activité d'une personnalité. L'application propose également un accès rapide aux 100 noms de personnalités masculines et féminines que l'on retrouve le plus fréquement dans les noms de voie en France métropolitaine.
+En France de nombreuses voies portent des noms de personnalités (scientifiques, artistes, responsables politiques, militaires,...). L'objectif de l'application PatronyMap est de présenter une cartographie des communes dont les voies portent des noms de personnalités. Vous pouvez rechercher un nom de personnalité puis afficher les communes contenant une voie correspondant à ce nom. La visualisation cartographique permet, par exemple, de constater des phénomènes géographiques intéressants liés à l'histoire ou à l'activité d'une personnalité. L'application propose également un accès rapide aux 100 noms de personnalités masculines et féminines que l'on retrouve le plus fréquement dans les noms de voie en France métropolitaine.
 
-![Image Alt](https://github.com/esrifrance/PatronymoGeo/raw/master/images/capture_ecran_1.png)
+![Image Alt](https://github.com/esrifrance/PatronyMap/raw/master/images/capture_ecran_1.png)
 
 ###Les données utilisées
 
@@ -12,13 +12,13 @@ L'application repose sur les informations fournies par la base de données Fanto
 
 ###L'application
 
-L'application cartographique est basée sur [l'API ArcGIS for JavaScript](http://developers.arcgis.com/javascript/) d'[Esri](http://www.esri.com) et des services web hébergés sur la plateforme [ArcGIS Online](http://www.arcgis.com). 
+PatronyMap est basée sur [l'API ArcGIS for JavaScript](http://developers.arcgis.com/javascript/) d'[Esri](http://www.esri.com) et des services web hébergés sur la plateforme [ArcGIS Online](http://www.arcgis.com). 
 
 L'affichage des communes possédant des voies parmi les 100 noms de personnalités les plus courantes (top 100 masculin et féminin) est impléneter de manière locale par le chargement de fichiers csv contenant la liste des noms de personnalités et des codes INSEE associés. Une liste de ces codes INSSEE fait la correspondance avec les latitudes, les longitudes et le nom de ces communes.
 
 Pour la recherche libre, deux services web Rest ArcGIS Online sont utilisés. Le [premier Feature Service](http://services.arcgis.com/d3voDfTFbHOCRwVR/ArcGIS/rest/services/APPLI_NOMS_VOIES_UNIQUES/FeatureServer/0) (98000 entités) contient les occurences uniques de chaque nom de personnalité extraites de la base de données Fantoir ainsi qu'un identifiant unique associé à chacun de ces noms de voie. Ce service permet la recherche d'une voie et l'implémentation de l'autocompletion dans la zone de recherche libre. Le [second Feature Service](http://services.arcgis.com/d3voDfTFbHOCRwVR/ArcGIS/rest/services/APPLI_NOMS_VOIES_UNIQUES/FeatureServer/0)  (300000 entités) permet de retrouver la liste des communes correspondant aux noms de personnalité choisi par l'utilisateurs.
 
-Vous pouvez accéder à l'application en ligne [à partir de ce lien](http://apps.arcorama.fr/PatronymoGeo).
+Vous pouvez accéder à l'application en ligne [à partir de ce lien](http://apps.arcorama.fr/PatronyMap).
 
 
 ###Avertissements
