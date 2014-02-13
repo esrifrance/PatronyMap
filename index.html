@@ -401,7 +401,6 @@
 
          if(i==(tablo.length-1)){
             queryTop100_H();
-            //console.log("chargement code insee OK");
           };
         }
 
@@ -534,8 +533,8 @@
     // FadeIn sur la couche des points
     function FadeIn(op){
       featureLayer.setOpacity(op);
-      if(op<1){
-        var newop=op+0.05;
+      var newop=op+0.05;
+      if(newop<1){
         setTimeout("FadeIn("+newop+")",80);
       }
 
@@ -550,8 +549,8 @@
       }
 
       featureLayer.setOpacity(op);
-      if(op>0){
-        var newop=op-0.1;
+      var newop=op-0.1;
+      if(newop>0){
         setTimeout("FadeOutH("+newop+")",50);
       }
       else{
@@ -568,9 +567,8 @@
       }
 
       featureLayer.setOpacity(op);
-      if(op>0){
-        var newop=op-0.1;
-        //console.log(newop);
+      var newop=op-0.1;
+      if(newop>0){
         setTimeout("FadeOutF("+newop+")",50);
       }
       else{
@@ -587,8 +585,8 @@
       }
 
       featureLayer.setOpacity(op);
-      if(op>0){
-        var newop=op-0.1;
+       var newop=op-0.1;
+      if(newop>0){
         setTimeout("FadeOutS("+newop+")",50);
       }
       else{
@@ -616,7 +614,7 @@
 
     <div class="searchdiv" id="searchdiv"  style="visibility: hidden">
           <b id="label_search_personne">Rechercher un nom de personne (ex: leblanc)</b><br/>
-          <input class="typeahead" id="search" type="text" placeholder="Un nom" >
+          <input class="typeahead" id="search" type="text" placeholder="un nom" >
     </div>
     <div class="Rounded_Gray" id="wikipediadiv"  style="visibility: hidden; top: 20px; width: 170px; right: 110px" align="center">
           <input type="image" id="wikipedia" src="./images/logo_wikipedia.png" alt='Rechercher cette personnalité sur Wikipédia'></input>
@@ -624,8 +622,8 @@
     <div class="Rounded_Gray" id="aboutdiv"  style="visibility: hidden; top: 20px; width: 70px; right: 20px" align="center">
           <input type="image" id="about" onclick="dijit.byId('AboutDialog').show()" src="./images/about.png" alt='A propos de cette application'></input>
     </div>
-    <div id="github"  style="visibility: hidden; left: 0px; bottom: -5px">
-          <a href="https://github.com/esrifrance/PatronymoGeo" target="_new"><img src="./images/ForkMeOnGithub.png" alt='Accéder au code source via GitHub'></a>
+    <div id="github"  style=" visibility: hidden; left: 0px; bottom: -5px">
+          <a  href="https://github.com/esrifrance/PatronymoGeo" target="_new"><img border="0" src="./images/ForkMeOnGithub.png" alt='Accéder au code source via GitHub'></a>
     </div>
 
     <div id="HOMMES" style="visibility: hidden">
